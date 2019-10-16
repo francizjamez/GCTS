@@ -22,13 +22,13 @@ public class Item{
 	
 	private int quantity;
 	
-	public Item (String name, JLabel rarity, JLabel qualitylbl, JLabel Quantity, JButton Trade, JLabel Price) {
-		this.rarity = rarity;
-		this.qualitylbl = qualitylbl;
+	public Item (String name, JLabel Raritylbl, JLabel Qualitylbl, JLabel Quantitylbl, JButton Tradebtn, JLabel Pricelbl) {
+		this.rarity = Raritylbl;
+		this.qualitylbl = Qualitylbl;
 		this.name = name;
-		this.quantitylbl = Quantity;
-		this.btnTrade = Trade;
-		this.pricelbl = Price;
+		this.quantitylbl = Quantitylbl;
+		this.btnTrade = Tradebtn;
+		this.pricelbl = Pricelbl;
 	}
 	
 	public void setQuantitylbl(int s) {

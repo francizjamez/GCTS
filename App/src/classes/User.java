@@ -2,7 +2,6 @@ package classes;
 
 public class User extends Account {
 
-	
 	private float balance;
 
 	public float getBalance() {

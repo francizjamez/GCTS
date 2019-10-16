@@ -32,17 +32,17 @@ public class MainGUI extends JFrame {
 
 	private JPanel contentPane;
 	public User user;
-	public int id;
+	//public int id;
 	
 	private MySQLConnection con = new MySQLConnection();
-	private float balance;
+	//private float balance;
 	Inventory inv = new Inventory();
 	
 	public void go() {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					MainGUI frame = new MainGUI(id, balance, user);
+					MainGUI frame = new MainGUI(user);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -51,11 +51,9 @@ public class MainGUI extends JFrame {
 		});
 	}
 
-	public MainGUI(int id, float bl, User user) throws SQLException {
+	public MainGUI(User user) throws SQLException {
 		
 		this.user = user;
-		this.id = id;
-		this.balance = bl;
 		
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -69,7 +67,7 @@ public class MainGUI extends JFrame {
 		lblGameCosmeticsTrading.setBounds(229, 12, 248, 53);
 		contentPane.add(lblGameCosmeticsTrading);
 		
-		JLabel lblId = new JLabel("ID : " + this.id);
+		JLabel lblId = new JLabel("ID : " + user.getID());
 		lblId.setBounds(39, 12, 66, 15);
 		contentPane.add(lblId);
 		
@@ -186,7 +184,7 @@ public class MainGUI extends JFrame {
 		lblPriceMG.setBounds(323, 63, 114, 37);
 		panelItems1.add(lblPriceMG);
 		
-		JLabel lblBalance = new JLabel("Balance: " + balance);
+		JLabel lblBalance = new JLabel("Balance: " + user.getBalance());
 		lblBalance.setForeground(new Color(255, 255, 255));
 		lblBalance.setFont(new Font("Dialog", Font.BOLD, 12));
 		lblBalance.setHorizontalAlignment(SwingConstants.CENTER);
@@ -343,7 +341,7 @@ public class MainGUI extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if (btnTradeMG.getText().equals("Buy")) {
 					String qtt = JOptionPane.showInputDialog("Enter How many to buy");
-					if(balance < MG.getPrice() * convert(qtt)) {
+					if(user.getBalance() < MG.getPrice() * convert(qtt)) {
 						JOptionPane.showMessageDialog(null,"Insufficient funds");  
 					}
 					else if(MG.getQuantity() < 1) {
@@ -356,8 +354,8 @@ public class MainGUI extends JFrame {
 								JOptionPane.showMessageDialog(null,"Insufficient stocks"); 
 							}
 							else {
-								con.buyItem(MG, convert(qtt), id);
-								updateBalance(id, lblBalance);
+								con.buyItem(MG, convert(qtt), user);
+								updateBalance(lblBalance);
 								setMarketInventory();
 								JOptionPane.showMessageDialog(null, "Traded successfully");
 							}
@@ -376,8 +374,8 @@ public class MainGUI extends JFrame {
 							JOptionPane.showMessageDialog(null,"Insufficient stocks"); 
 						}
 						else {
-							con.sellItem(MG, convert(qtt), id);
-							updateBalance(id, lblBalance);
+							con.sellItem(MG, convert(qtt), user);
+							updateBalance(lblBalance);
 							setUserInventory();
 							JOptionPane.showMessageDialog(null, "Traded successfully");
 						}
@@ -394,7 +392,7 @@ public class MainGUI extends JFrame {
 				try {
 					if (btnTradeFoA.getText().equals("Buy")) {
 						String qtt = JOptionPane.showInputDialog("Enter How many to buy");
-						if(balance < FoA.getPrice() * convert(qtt)) {
+						if(user.getBalance() < FoA.getPrice() * convert(qtt)) {
 							JOptionPane.showMessageDialog(null,"Insufficient funds");  
 						}
 						else if(FoA.getQuantity() < 1) {
@@ -408,8 +406,8 @@ public class MainGUI extends JFrame {
 							}
 								
 							else {
-								con.buyItem(FoA, convert(qtt), id);
-								updateBalance(id, lblBalance);
+								con.buyItem(FoA, convert(qtt), user);
+								updateBalance(lblBalance);
 								setMarketInventory();
 								JOptionPane.showMessageDialog(null, "Traded successfully");
 							}
@@ -422,8 +420,8 @@ public class MainGUI extends JFrame {
 							JOptionPane.showMessageDialog(null,"Insufficient stocks"); 
 						}
 						else {
-							con.sellItem(FoA, convert(qtt), id);
-							updateBalance(id, lblBalance);
+							con.sellItem(FoA, convert(qtt), user);
+							updateBalance(lblBalance);
 							setUserInventory();
 							JOptionPane.showMessageDialog(null, "Traded successfully");
 						}
@@ -439,7 +437,7 @@ public class MainGUI extends JFrame {
 				try {
 					if (btnTradeGM.getText().equals("Buy")) {
 						String qtt = JOptionPane.showInputDialog("Enter How many to buy");
-						if(balance < GM.getPrice() * convert(qtt)) {
+						if(user.getBalance() < GM.getPrice() * convert(qtt)) {
 							JOptionPane.showMessageDialog(null,"Insufficient funds");  
 						}
 						else if(GM.getQuantity() < 1) {
@@ -453,8 +451,8 @@ public class MainGUI extends JFrame {
 							}
 								
 							else {
-								con.buyItem(GM, convert(qtt), id);
-								updateBalance(id, lblBalance);
+								con.buyItem(GM, convert(qtt), user);
+								updateBalance(lblBalance);
 								setMarketInventory();
 								JOptionPane.showMessageDialog(null, "Traded successfully");
 							}
@@ -467,8 +465,8 @@ public class MainGUI extends JFrame {
 							JOptionPane.showMessageDialog(null,"Insufficient stocks"); 
 						}
 						else {
-							con.sellItem(GM, convert(qtt), id);
-							updateBalance(id, lblBalance);
+							con.sellItem(GM, convert(qtt), user);
+							updateBalance(lblBalance);
 							setUserInventory();
 							JOptionPane.showMessageDialog(null, "Traded successfully");
 						}
@@ -482,7 +480,7 @@ public class MainGUI extends JFrame {
 	}
 	
 	private void setUserInventory() throws SQLException {
-		con.setInventory(inv.getInventory(), id);
+		con.setInventory(inv.getInventory(), user);
 		inv.updateInventory();
 	}
 	
@@ -491,9 +489,9 @@ public class MainGUI extends JFrame {
 		inv.updateInventory();
 	}
 	
-	private void updateBalance(int id, JLabel lblBalance) throws SQLException {
-		this.balance = con.getBalance(id);
-		lblBalance.setText("Balance : " + this.balance); 
+	private void updateBalance(JLabel lblBalance) throws SQLException {
+		user.setBalance(con.getBalance(user));
+		lblBalance.setText("Balance : " + user.getBalance()); 
 	}
 	
 	private int convert(String s) {

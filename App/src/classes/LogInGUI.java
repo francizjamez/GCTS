@@ -96,9 +96,9 @@ public class LogInGUI extends JFrame {
 				if (valid) {
 					MainGUI mn;
 					try {
-						int id = con.getID(s);
-						User user = new User(s[0], s[1], Integer.toString(id) , con.getBalance(id));
-						mn = new MainGUI(con.getID(s), con.getBalance(id), user);
+						String id = con.getID(s);
+						User user = new User(s[0], s[1], id , con.getBalance(id));
+						mn = new MainGUI(user);
 						mn.go();
 					} catch (SQLException e) {
 						e.printStackTrace();

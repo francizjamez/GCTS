@@ -9,7 +9,7 @@ import javax.swing.JOptionPane;
 
 public class MySQLConnection {
 	
-	public static Connection getConnection() {
+	public Connection getConnection() {
 		try{
 			String driver = "com.mysql.cj.jdbc.Driver";
 			String url = "jdbc:mysql://localhost/gcts?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";
@@ -27,7 +27,7 @@ public class MySQLConnection {
 	}
 	
 	
-	public static boolean tryLogIn(String s[]) {
+	public boolean tryLogIn(String s[]) {
 		
 		try {
 			Connection con = getConnection();
@@ -58,7 +58,7 @@ public class MySQLConnection {
 	}
 	
 	
-	public int getID(String s[]) throws SQLException {
+	public String getID(String s[]) throws SQLException {
 		Connection con = getConnection();
 		Statement st = con.createStatement();
 		
@@ -68,17 +68,17 @@ public class MySQLConnection {
 	      {
 	        String user_name = rs.getString("UserName");
 	        String password = rs.getString("Password");
-	        int id = rs.getInt("UserID");
+	        String id = rs.getString("UserID");
 	        
 	        if(user_name.equals(s[0]) && password.equals(s[1])) {
 	        	return id;
 	        }
 	      }
 		st.close();
-		return -1;
+		return "";
 	}
 	
-	public Float getBalance(int id) throws SQLException {
+	public Float getBalance(User user) throws SQLException {
 		Connection con = getConnection();
 		Statement st = con.createStatement();
 		
@@ -86,9 +86,26 @@ public class MySQLConnection {
 		
 		while (rs.next())
 	      {
-	        int user_id = rs.getInt("UserID");
 	        
-	        if(user_id == id) {
+	        if(user.getID().equals(rs.getString("UserID"))) {
+	        	return rs.getFloat("Balance");
+	        }
+	      }
+		st.close();
+		
+		return (float) -1;
+	}
+	
+	public Float getBalance(String id) throws SQLException {
+		Connection con = getConnection();
+		Statement st = con.createStatement();
+		
+		ResultSet rs = st.executeQuery("SELECT * FROM GCTS.User;");
+		
+		while (rs.next())
+	      {
+	        
+	        if(id.equals(rs.getString("UserID"))) {
 	        	return rs.getFloat("Balance");
 	        }
 	      }
@@ -114,7 +131,7 @@ public class MySQLConnection {
 		st.close();
 	}
 	
-	public void setInventory(ArrayList<Item> itm, int id) throws SQLException {
+	public void setInventory(ArrayList<Item> itm, User user) throws SQLException {
 		
 		Connection con = getConnection();
 		Statement st = con.createStatement();
@@ -123,7 +140,7 @@ public class MySQLConnection {
 		
 		while (rs.next()){
 			
-			if(id == rs.getInt("UserID")) {
+			if(user.getID().equals(rs.getString("UserID"))) {
 				
 				Iterator i = itm.iterator();
 				
@@ -168,7 +185,7 @@ public class MySQLConnection {
 		st.close();
 	}
 	
-	public void buyItem(Item itm, int quantity, int id) throws SQLException {
+	public void buyItem(Item itm, int quantity, User user) throws SQLException {
 		Connection con = getConnection();
 		Statement st = con.createStatement();
 		
@@ -183,14 +200,14 @@ public class MySQLConnection {
 				qtt -= quantity;
 				PreparedStatement buy = con.prepareStatement("UPDATE gcts.market SET quantity = " +qtt + " WHERE (`itemID` = " + itm.getID() + ")");
 				buy.executeUpdate();
-				updateBalance(id, itm.getPrice() * -1 * quantity);
-				addUserItem(id, itm, quantity);
+				updateBalance(user, itm.getPrice() * -1 * quantity);
+				addUserItem(user, itm, quantity);
 			}
 	    }
 		st.close();
 	}
 	
-	public float updateBalance(int id, float cost) throws SQLException {
+	public float updateBalance(User user, float cost) throws SQLException {
 		
 		Connection con = getConnection();
 		Statement st = con.createStatement();
@@ -199,10 +216,10 @@ public class MySQLConnection {
 		
 		while(rs.next()) {
 			
-			if (id == rs.getInt("UserID")) {
+			if (user.getID().equals(rs.getString("UserID"))) {
 				float balance = rs.getFloat("Balance");
 				balance += cost;
-				PreparedStatement buy = con.prepareStatement("UPDATE `GCTS`.`User` SET `Balance` = "+ balance + " WHERE (`UserID` = "+ id + ");");
+				PreparedStatement buy = con.prepareStatement("UPDATE `GCTS`.`User` SET `Balance` = "+ balance + " WHERE (`UserID` = "+ user.getID() + ");");
 				buy.executeUpdate();
 				return balance;
 			}
@@ -211,7 +228,7 @@ public class MySQLConnection {
 		return -1;
 	}
 	
-	public void addUserItem(int id, Item itm, int qtt) throws SQLException {
+	public void addUserItem(User user, Item itm, int qtt) throws SQLException {
 		
 		Connection con = getConnection();
 		Statement st = con.createStatement();
@@ -220,10 +237,10 @@ public class MySQLConnection {
 		
 		while(rs.next()) {
 			
-			if(id == rs.getInt("UserID") && itm.getID().equals(rs.getString("ItemID"))) {
+			if(user.getID().equals(rs.getString("UserID")) && itm.getID().equals(rs.getString("ItemID"))) {
 				int quantity = rs.getInt("Quantity");
 				quantity += qtt;
-				PreparedStatement add = con.prepareStatement("UPDATE `GCTS`.`Inventory` SET `quantity` = "+ quantity + " WHERE (`UserID` = "+ id + ") AND (`ItemID` = + " + itm.getID() + ");");
+				PreparedStatement add = con.prepareStatement("UPDATE `GCTS`.`Inventory` SET `quantity` = "+ quantity + " WHERE (`UserID` = "+ user.getID() + ") AND (`ItemID` = + " + itm.getID() + ");");
 				add.executeUpdate();
 			}
 			
@@ -249,7 +266,7 @@ public class MySQLConnection {
 		}
 	}
 	
-	public void sellItem(Item itm, int quantity, int id) throws SQLException {
+	public void sellItem(Item itm, int quantity,User user) throws SQLException {
 
 		Connection con = getConnection();
 		Statement st = con.createStatement();
@@ -261,9 +278,9 @@ public class MySQLConnection {
 			if(itm.getID().equals(rs.getString("ItemID"))) {
 				int qtt = rs.getInt("Quantity");
 				qtt -= quantity;
-				PreparedStatement buy = con.prepareStatement("UPDATE gcts.Inventory SET quantity = " +qtt + " WHERE (`itemID` = " + itm.getID() + ") and UserID = " +id + "");
+				PreparedStatement buy = con.prepareStatement("UPDATE gcts.Inventory SET quantity = " +qtt + " WHERE (`itemID` = " + itm.getID() + ") and UserID = " +user.getID() + "");
 				buy.executeUpdate();
-				updateBalance(id, itm.getPrice() * quantity);
+				updateBalance(user, itm.getPrice() * quantity);
 				addMarketItem(itm, quantity);
 			}
 	    }
